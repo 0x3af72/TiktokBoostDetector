@@ -19,10 +19,10 @@
  *     S1 likes/views  ×3      S2 saves/views ×3 (video/slideshow bands)
  *     S3 saves/likes  ×2      S4 likes/comments ×1     S5 comments_alive ×1 (optional)
  *
- *   S = 3·S1 + 3·S2 + 2·S3 + 1·S4 + 1·S5, then a view-scale multiplier:
- *     ≥100K ×1.0 · 10–100K ×0.7 · <10K ×0.4 · hidden: drop S1,S2; S=2·S3+S4+S5, ×0.8
+ *   S = 3·S1 + 3·S2 + 2·S3 + 1·S4 + 1·S5 (when views are hidden, S1/S2 can't be
+ *   computed and simply drop out → S = 2·S3 + S4 + S5).
  *   Verdict: S>0 BOOSTED · S<0 ORGANIC · S=0 ORGANIC@50% (undetermined).
- *   confidence = min(95, 50 + 4·|S|)%  (cap 80% when views hidden)
+ *   confidence = min(95, 50 + 4·|S|)%
  */
 (function (root, factory) {
   const api = factory();
@@ -33,11 +33,14 @@
 
   // Band tables: pick the score of the first row whose threshold the value meets.
   // Each is [minValue, score] sorted high→low; the last [0, …] is the floor.
+  // Recalibrated 2026 against Rival IQ / 2M-post data (see CLAUDE.md):
+  //   likes/views average ~3–3.5%, neutral 2.5–4.5%, viral tier ~9% (top 6%).
+  //   saves/views average ~0.3–0.6% — neutral video 0.4–0.9%, slideshow 1–2%.
   const BANDS = {
-    s1: [[0.08, -2], [0.035, -1], [0.02, 0], [0.01, 1], [0, 2]], // likes/views
-    s2_video: [[0.025, -2], [0.012, -1], [0.007, 0], [0.003, 1], [0, 2]], // saves/views
-    s2_slideshow: [[0.045, -2], [0.025, -1], [0.015, 0], [0.008, 1], [0, 2]],
-    s3_video: [[0.25, -2], [0.12, -1], [0.06, 0], [0.03, 1], [0, 2]], // saves/likes
+    s1: [[0.09, -2], [0.045, -1], [0.025, 0], [0.01, 1], [0, 2]], // likes/views
+    s2_video: [[0.018, -2], [0.009, -1], [0.004, 0], [0.002, 1], [0, 2]], // saves/views
+    s2_slideshow: [[0.04, -2], [0.02, -1], [0.01, 0], [0.005, 1], [0, 2]],
+    s3_video: [[0.25, -2], [0.12, -1], [0.06, 0], [0.03, 1], [0, 2]], // saves/likes (unchanged)
     s3_slideshow: [[0.3, -2], [0.15, -1], [0.08, 0], [0.04, 1], [0, 2]],
   };
   const WEIGHTS = { s1: 3, s2: 3, s3: 2, s4: 1, s5: 1 };
@@ -80,11 +83,12 @@
     for (const [min, score] of table) if (value >= min) return score;
     return table[table.length - 1][1];
   }
+  // likes:comments — hard data: brand tiers run 40–80:1; red flag tightened to >250:1.
   function scoreS4(r) {
     if (r == null) return null;
-    if (r <= 60) return -1;
+    if (r <= 80) return -1;
     if (r <= 150) return 0;
-    if (r <= 300) return 1;
+    if (r <= 250) return 1;
     return 2;
   }
   // comments_alive is an EXPLICIT optional input (spec: "omit if unchecked").
@@ -127,7 +131,6 @@
     // ---- hard override (skippable via opts.promoOverride = false) ----
     if (promoLabel && applyOverride) {
       return pack("BOOSTED", 99, { score: null, override: true, signals: [], overrideSuppressed: false,
-        viewScale: null, viewScaleLabel: "—",
         tagline: 'Platform-disclosed paid distribution ("Promotional content" / isAd). Boosted by definition.' });
     }
 
@@ -142,12 +145,8 @@
     const alive = deriveAlive(raw, likes);
     const s5 = alive == null ? null : alive ? -1 : 1;
 
-    // view-scale path
-    let mult, viewScaleLabel, useS1S2;
-    if (viewsHidden) { mult = 0.8; viewScaleLabel = "hidden (S1/S2 dropped)"; useS1S2 = false; }
-    else if (views >= 100000) { mult = 1.0; viewScaleLabel = "≥100K ×1.0"; useS1S2 = true; }
-    else if (views >= 10000) { mult = 0.7; viewScaleLabel = "10–100K ×0.7"; useS1S2 = true; }
-    else { mult = 0.4; viewScaleLabel = "<10K ×0.4"; useS1S2 = true; }
+    // S1/S2 are per-view, so they only count when views are visible.
+    const useS1S2 = !viewsHidden;
 
     const rows = [];
     const add = (key, label, score, weight, valueStr, baseline, included) =>
@@ -156,18 +155,18 @@
 
     // baseline = where each signal crosses organic ↔ boosted (from the band tables).
     const slide = format === "slideshow";
-    add("S1", "Likes / views", s1, WEIGHTS.s1, pctStr(lpv), "organic ≥3.5% · boosted <2%", useS1S2);
+    add("S1", "Likes / views", s1, WEIGHTS.s1, pctStr(lpv), "organic ≥4.5% · boosted <2.5%", useS1S2);
     add("S2", "Saves / views", s2, WEIGHTS.s2, pctStr(spv),
-      slide ? "organic ≥2.5% · boosted <1.5%" : "organic ≥1.2% · boosted <0.7%", useS1S2);
+      slide ? "organic ≥2% · boosted <1%" : "organic ≥0.9% · boosted <0.4%", useS1S2);
     add("S3", "Saves / likes", s3, WEIGHTS.s3, pctStr(s2l),
       slide ? "organic ≥15% · boosted <8%" : "organic ≥12% · boosted <6%", true);
-    add("S4", "Likes / comments", s4, WEIGHTS.s4, ratioStr(l2c), "organic ≤60:1 · boosted >150:1", true);
+    add("S4", "Likes / comments", s4, WEIGHTS.s4, ratioStr(l2c), "organic ≤80:1 · red flag >250:1", true);
     add("S5", "Comments alive", s5, WEIGHTS.s5, alive == null ? "unchecked" : alive ? "alive" : "dead",
       "organic alive · boosted dead", s5 != null);
 
-    let raw_S = 0;
-    for (const r of rows) raw_S += r.contribution;
-    const S = Math.round(raw_S * mult * 10) / 10; // one decimal
+    let S = 0;
+    for (const r of rows) S += r.contribution;
+    S = Math.round(S * 10) / 10; // one decimal
 
     let verdict;
     if (S > 0) verdict = "BOOSTED";
@@ -175,7 +174,6 @@
     else verdict = "ORGANIC"; // S === 0 -> undetermined, reported at 50%
 
     let confidence = Math.min(95, Math.round(50 + 4 * Math.abs(S)));
-    if (viewsHidden) confidence = Math.min(confidence, 80);
     if (S === 0) confidence = 50;
 
     const undetermined = confidence < 60;
@@ -190,9 +188,8 @@
       : `${strength} (${confidence}%) — ${why}.`;
 
     return pack(verdict, confidence, {
-      score: S, rawScore: Math.round(raw_S * 10) / 10, override: false, overrideSuppressed,
-      signals: rows, viewScale: mult, viewScaleLabel, viewsHidden, undetermined,
-      commentsAlive: alive, tagline,
+      score: S, override: false, overrideSuppressed,
+      signals: rows, viewsHidden, undetermined, commentsAlive: alive, tagline,
     });
   }
 

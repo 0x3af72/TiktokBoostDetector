@@ -253,18 +253,17 @@
       return main + base;
     }).join("");
 
-    const scaleNote = `<tr class="tbd-na"><td>View scale</td><td class="tbd-v"></td><td class="tbd-note">${escapeHtml(res.viewScaleLabel)}</td><td class="tbd-mark">×${res.viewScale}</td></tr>`;
     const totalRow = `<tr class="${res.score > 0 ? "tbd-fail" : res.score < 0 ? "tbd-pass" : "tbd-zero"}"><td><b>Score S</b></td><td></td><td></td><td class="tbd-mark"><b>${signed(res.score)}</b></td></tr>`;
 
     return (
       (known ? "" : `<p class="tbd-warn">Stats not loaded yet — scroll or reload if this persists.</p>`) +
       (res.overrideSuppressed ? `<p class="tbd-warn">⚐ isAd flagged, but promo override is OFF — scored on engagement only.</p>` : "") +
-      (res.viewsHidden ? `<p class="tbd-warn">⚠ Views hidden — S1/S2 dropped, confidence capped at 80%.</p>` : "") +
+      (res.viewsHidden ? `<p class="tbd-warn">⚠ Views hidden — S1/S2 can't be computed; scored on saves/likes & comments.</p>` : "") +
       header +
       `<p class="tbd-tagline">${escapeHtml(res.tagline)}</p>` +
       counts +
       sect("Signals (− organic · + boosted)",
-        `<table class="tbd-tbl tbd-steps">${sigRows}${scaleNote}${totalRow}</table>`) +
+        `<table class="tbd-tbl tbd-steps">${sigRows}${totalRow}</table>`) +
       `<div class="tbd-action"><b>Action:</b> ${escapeHtml(res.action)}</div>` +
       `<div class="tbd-foot">Binary Boost Detector · saves carry the heaviest weight</div>`
     );

@@ -32,7 +32,7 @@
     <ol>
       <li><b>Override:</b> "Promotional content" / isAd → Boosted 99%.</li>
       <li>Five signals score −2 (organic) … +2 (boosted): likes/views ×3, <b>saves/views ×3</b>, <b>saves/likes ×2</b>, likes/comments ×1, comments-alive ×1. Saves carry half the weight (hardest to fake).</li>
-      <li>S = weighted sum × a view-scale factor (low views shrink confidence). S&gt;0 → Boosted, S&lt;0 → Organic.</li>
+      <li>S = the weighted sum. S&gt;0 → Boosted, S&lt;0 → Organic (S1/S2 drop out when views are hidden).</li>
       <li>confidence = 50 + 4·|S| (cap 95%, or 80% with views hidden).</li>
     </ol>
     <div class="note">50–60% = a guess · 60–75% = lean · 75%+ = act on it. Works on

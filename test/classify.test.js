@@ -22,26 +22,20 @@ function check(name, raw, expVerdict, expConfApprox) {
 console.log("\n— Spec worked examples (verdict must match; confidence per formula) —");
 // kittyweight 4M slideshow: L 12.1%, Sv 4.3%, Sv/L 35%, 300:1 -> ORGANIC (S=-12 -> 95%)
 check("kittyweight", { views: 4e6, likes: 480000, saves: 172000, comments: 1600, isSlideshow: true }, "ORGANIC", 95);
-// looksteacher 1.1M video: L 4.0%, Sv 0.87%, Sv/L 22%, 82:1 -> ORGANIC (S=-5 -> 70%)
-check("looksteacher", { views: 1.1e6, likes: 44000, saves: 9570, comments: 537 }, "ORGANIC", 70);
+// looksteacher 1.1M video: L 4.0% (now neutral 0), Sv 0.87% (neutral 0), Sv/L 22% (-1), 82:1 (0) -> S=-2 -> ORGANIC 58% (recalibrated: 4% likes is just average now)
+check("looksteacher", { views: 1.1e6, likes: 44000, saves: 9570, comments: 537 }, "ORGANIC", 58);
 // glowupcat 2.2M slideshow: promo label -> BOOSTED 99% (override)
 check("glowupcat (promo)", { views: 2.2e6, likes: 200000, saves: 60000, comments: 500, isSlideshow: true, promoLabel: true }, "BOOSTED", 99);
 // thefabstory 3.7M video: L 0.51%, Sv 0.06%, Sv/L 12%, 33:1, alive -> BOOSTED (S=8 -> 82%)
 check("thefabstory", { views: 3.7e6, likes: 18800, saves: 2275, comments: 571, commentsAlive: true }, "BOOSTED", 82);
-// myjourney 10M video: L 3.7%, Sv 0.11%, Sv/L 3.07%, 407:1, dead -> BOOSTED (S=8 by table -> 82%)
-check("myjourney.app", { views: 10e6, likes: 367800, saves: 11300, comments: 903, commentsAlive: false }, "BOOSTED", 82);
+// myjourney 10M video: L 3.68% (neutral 0), Sv 0.11% (+2), Sv/L 3.07% (+1), 407:1 (+2), dead (+1) -> S=11 -> BOOSTED 94%
+check("myjourney.app", { views: 10e6, likes: 367800, saves: 11300, comments: 903, commentsAlive: false }, "BOOSTED", 94);
 
 console.log("\n— Hard override —");
 check("promo override beats organic", { views: 4e6, likes: 484000, saves: 172000, comments: 1613, isSlideshow: true, promoLabel: true }, "BOOSTED", 99);
 check("isAd maps to promo label", { views: 3.7e6, likes: 18800, saves: 2275, comments: 571, isAd: true }, "BOOSTED", 99);
 
-console.log("\n— View-scale modifier (same ratios, different view tiers) —");
-// strong organic ratios: video L 10%, Sv 3% (S1=-2,S2=-2,S3 35%=-2,S4 ~50:1=-1) rawS=-19
-check("strong organic ≥100K", { views: 500000, likes: 50000, saves: 15000, comments: 1000 }, "ORGANIC", 95);
-check("same ratios 10–100K", { views: 50000, likes: 5000, saves: 1500, comments: 100 }, "ORGANIC"); // ×0.7 lower conf
-check("same ratios <10K", { views: 5000, likes: 500, saves: 150, comments: 10 }, "ORGANIC"); // ×0.4 much lower conf
-
-console.log("\n— Views hidden (drop S1/S2; S = 2·S3 + S4 + S5, ×0.8, cap 80%) —");
+console.log("\n— Views hidden (S1/S2 drop out; S = 2·S3 + S4 + S5, no view-scaling) —");
 check("hidden, strong saves", { likes: 10000, saves: 3500, comments: 200 }, "ORGANIC"); // S3 35% -> -2
 check("hidden, hollow saves", { likes: 10000, saves: 200, comments: 25 }, "BOOSTED"); // S3 2% -> +2
 
@@ -78,8 +72,8 @@ console.log("\n— Exact score checks —");
 function eq(name, got, want) { const ok = got === want; ok ? pass++ : fail++; console.log(`${ok ? "✓" : "✗"} ${name}: ${got} (want ${want})`); }
 eq("thefabstory S", fab.score, 8);
 eq("thefabstory confidence", fab.confidence, 82);
-eq("looksteacher S", look.score, -5);
-eq("looksteacher confidence", look.confidence, 70);
+eq("looksteacher S", look.score, -2);
+eq("looksteacher confidence", look.confidence, 58);
 
 console.log(`\n${fail === 0 ? "✅ ALL PASS" : "❌ FAILURES"}: ${pass} passed, ${fail} failed\n`);
 process.exit(fail === 0 ? 0 : 1);

@@ -37,7 +37,7 @@ test/classify.test.js    node test/classify.test.js
 **Binary classifier** (ORGANIC vs BOOSTED + confidence %); rewritten 2026-06-07,
 replaces the 3-stage spec. Pure engagement math, no identity checks.
 `classify(raw)` returns `{verdict, label, short, color, action, tagline,
-confidence, score, signals[], viewScale, viewScaleLabel, viewsHidden, override,
+confidence, score, signals[], viewsHidden, override,
 promoLabel, undetermined, format, metrics}` — UI renders the signal table
 color-coded (negative=organic green, positive=boosted red).
 
@@ -50,11 +50,15 @@ Promote, persistence after a campaign ends) are undocumented — hence the toggl
 
 **Signals** (each −2 organic … +2 boosted): S1 likes/views ×3 · S2 saves/views ×3
 (video/slideshow bands) · S3 saves/likes ×2 · S4 likes/comments ×1 · S5
-comments_alive ×1 (optional). `S = 3·S1+3·S2+2·S3+1·S4+1·S5` × view-scale
-(≥100K ×1.0 · 10–100K ×0.7 · <10K ×0.4 · hidden: drop S1/S2, `2·S3+S4+S5` ×0.8).
+comments_alive ×1 (optional). `S = 3·S1+3·S2+2·S3+1·S4+1·S5` (views hidden → S1/S2
+drop out → `2·S3+S4+S5`; NO view-scale multiplier — removed 2026-06).
 S>0 BOOSTED · S<0 ORGANIC · S=0 → ORGANIC @50% (undetermined).
-`confidence = min(95, 50 + 4·|S|)` (cap 80% hidden). Band tables live in
-`BANDS`/`WEIGHTS` in classify.js.
+`confidence = min(95, 50 + 4·|S|)`. Band tables live in `BANDS`/`WEIGHTS` in classify.js.
+
+Bands recalibrated 2026-06 against Rival IQ / 2M-post data: likes/views neutral
+2.5–4.5% (avg ~3–3.5%, viral ~9%); saves/views ~½ the old bands (neutral video
+0.4–0.9%, slideshow 1–2%; platform avg ~0.3–0.6%); likes:comments red flag
+tightened to >250:1 (brand tiers run 40–80:1).
 
 **Key design points:**
 - Saves carry half the weight (S2+S3 = 5/10) — hardest signal to fake.
@@ -117,6 +121,11 @@ the interceptor (MAIN) forwards records to content.js (ISOLATED).
 
 ## Decisions & gotchas (newest first)
 
+- 2026-06-07: **Recalibrated bands + removed view-scale.** S1/S2/S4 thresholds
+  updated to sourced data (see framework section). Dropped the view-scale
+  multiplier and the hidden-views confidence cap entirely — S is now the plain
+  weighted sum. Effect: looksteacher slid ORGANIC 70%→58% (4% likes/views is now
+  "average", not above-baseline); other worked examples unchanged in verdict.
 - 2026-06-07: **Binary classifier rewrite** (ORGANIC/BOOSTED + confidence %),
   replacing the 3-stage spec. `promoLabel`←`isAd` is a hard override. S5
   (comments_alive) only scored on explicit input (no likes:comments proxy →

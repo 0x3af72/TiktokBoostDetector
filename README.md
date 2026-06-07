@@ -50,10 +50,9 @@ Otherwise five signals each score **−2 (organic) … +2 (boosted)**:
 | S4 likes / comments | ×1 | |
 | S5 comments alive | ×1 | optional; skipped if unchecked |
 
-`S = 3·S1 + 3·S2 + 2·S3 + 1·S4 + 1·S5`, then a **view-scale multiplier**
-(≥100K ×1.0 · 10–100K ×0.7 · <10K ×0.4 · hidden: drop S1/S2, use `2·S3 + S4 + S5`
-×0.8). **S > 0 → Boosted, S < 0 → Organic.**
-`confidence = min(95, 50 + 4·|S|)%` (capped 80% when views are hidden).
+`S = 3·S1 + 3·S2 + 2·S3 + 1·S4 + 1·S5` (when views are hidden, S1/S2 can't be
+computed and drop out → `S = 2·S3 + S4 + S5`). **S > 0 → Boosted, S < 0 → Organic.**
+`confidence = min(95, 50 + 4·|S|)%`.
 
 Saves carry **half the total weight** (S2 + S3) because they're the hardest signal
 to fake — unfilterable by the account, rarely botted, not produced by passive ad
@@ -95,7 +94,7 @@ node test/classify.test.js
 
 Covers the spec's worked examples (kittyweight, looksteacher, thefabstory,
 myjourney.app, glowupcat) with formula-exact scores/confidence, plus the
-promo-label override, the view-scale tiers, the hidden-views path, the
+promo-label override, the hidden-views path, the
 video↔slideshow saves bands, and parsing guards.
 
 ## Limitations
@@ -110,7 +109,7 @@ video↔slideshow saves bands, and parsing guards.
   data the extension skips it rather than proxying from likes:comments (would
   double-count S4). `promo_label` is mapped from `isAd`.
 - Slideshow detail (`/photo/`) pages keep stats in the DOM action bar with **no
-  views**, so a directly-opened slideshow uses the hidden-views path (S3+S4+S5,
-  confidence ≤80%) unless the grid/API already supplied its view count.
+  views**, so a directly-opened slideshow uses the hidden-views path (S3+S4+S5)
+  unless the grid/API already supplied its view count.
 - TikTok's DOM/API are unofficial and can change; selectors and the JSON harvest
   are written defensively but may need updates. See `CLAUDE.md`.
