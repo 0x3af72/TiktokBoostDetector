@@ -1,0 +1,119 @@
+/* TikTok Boost Detector — injected UI. Scoped under .tbd-panel / .tbd-* to avoid
+   colliding with TikTok's styles. High z-index, fixed, unintrusive. The widget
+   (#tbd-widget, bottom-right) and the grid popover (#tbd-popover) share .tbd-panel. */
+
+/* ---------- profile / grid badge ---------- */
+.tbd-badge {
+  position: absolute;
+  top: 6px;
+  left: 6px;
+  z-index: 50;
+  min-width: 30px;
+  padding: 2px 6px;
+  border-radius: 6px;
+  font: 700 11px/1.4 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  color: #fff;
+  text-align: center;
+  letter-spacing: 0.3px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.45);
+  pointer-events: auto;
+  cursor: pointer;
+  user-select: none;
+}
+
+/* ---------- shared panel (widget + popover) ---------- */
+.tbd-panel {
+  position: fixed;
+  z-index: 2147483646;
+  width: 264px;
+  max-width: calc(100vw - 32px);
+  background: #0f0f12;
+  color: #f1f5f9;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-left: 4px solid var(--tbd-color, #64748b);
+  border-radius: 12px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+  font: 13px/1.45 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  overflow: hidden;
+}
+#tbd-widget { right: 16px; bottom: 16px; } /* popover gets left/top from JS */
+
+.tbd-panel .tbd-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  cursor: pointer;
+  user-select: none;
+}
+.tbd-panel .tbd-dot {
+  width: 10px; height: 10px; border-radius: 50%;
+  background: var(--tbd-color, #64748b); flex: 0 0 auto;
+  box-shadow: 0 0 8px var(--tbd-color, #64748b);
+}
+.tbd-panel .tbd-label { font-weight: 700; flex: 1 1 auto; }
+.tbd-panel .tbd-type {
+  font-size: 10px; text-transform: uppercase; letter-spacing: 0.5px; color: #94a3b8;
+  border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 5px; padding: 1px 5px;
+}
+.tbd-panel .tbd-chevron { color: #94a3b8; font-size: 12px; }
+.tbd-panel .tbd-close {
+  background: none; border: none; color: #94a3b8; font-size: 18px; line-height: 1;
+  cursor: pointer; padding: 0 2px;
+}
+.tbd-panel .tbd-close:hover { color: #fff; }
+
+/* body: hidden until expanded (widget); popover renders expanded */
+.tbd-panel .tbd-body { display: none; padding: 0 12px 12px; }
+.tbd-panel.tbd-expanded .tbd-body { display: block; }
+
+.tbd-panel .tbd-warn { color: #fbbf24; font-size: 11px; margin: 4px 0; }
+.tbd-panel .tbd-tagline { margin: 2px 0 10px; color: #cbd5e1; font-size: 12px; }
+
+.tbd-panel .tbd-score {
+  display: flex; align-items: baseline; gap: 6px;
+  background: rgba(255, 255, 255, 0.05); border-radius: 8px; padding: 6px 10px; margin-bottom: 10px;
+}
+.tbd-panel .tbd-score b { color: var(--tbd-color, #fff); }
+.tbd-panel .tbd-score .tbd-scale { margin-left: auto; font-size: 10px; color: #94a3b8; }
+.tbd-panel .tbd-score .tbd-conf { margin-left: auto; font-weight: 700; font-size: 16px; font-variant-numeric: tabular-nums; }
+.tbd-panel .tbd-zero .tbd-v, .tbd-panel .tbd-zero .tbd-mark { color: #cbd5e1; }
+/* baseline sub-line under each signal row */
+.tbd-panel .tbd-subrow td { border-top: none; padding-top: 0; padding-bottom: 4px; }
+.tbd-panel .tbd-baseline { font-size: 9px; color: #64748b; }
+
+.tbd-panel .tbd-counts { display: flex; justify-content: space-between; gap: 4px; margin-bottom: 10px; }
+.tbd-panel .tbd-cc { text-align: center; flex: 1; }
+.tbd-panel .tbd-cc span { display: block; font-weight: 700; font-size: 12px; }
+.tbd-panel .tbd-cc label { font-size: 9px; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.3px; }
+
+.tbd-panel .tbd-sect { margin-bottom: 10px; }
+.tbd-panel .tbd-sect-t {
+  font-size: 10px; text-transform: uppercase; letter-spacing: 0.5px; color: #94a3b8; margin-bottom: 4px;
+}
+
+.tbd-panel .tbd-chips { display: flex; flex-wrap: wrap; gap: 4px; }
+.tbd-panel .tbd-chip {
+  font-size: 10px; color: #cbd5e1; background: rgba(255, 255, 255, 0.06);
+  border-radius: 5px; padding: 2px 6px;
+}
+.tbd-panel .tbd-chip b { color: #f1f5f9; text-transform: capitalize; }
+
+.tbd-panel .tbd-tbl { width: 100%; border-collapse: collapse; }
+.tbd-panel .tbd-tbl td { padding: 3px 4px; vertical-align: top; border-top: 1px solid rgba(255, 255, 255, 0.06); }
+.tbd-panel .tbd-tbl tr:first-child td { border-top: none; }
+.tbd-panel .tbd-v { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; font-weight: 600; }
+.tbd-panel .tbd-note { color: #94a3b8; font-size: 10px; }
+.tbd-panel .tbd-mark { text-align: right; width: 24px; font-weight: 700; }
+
+/* pass / fail / n.a. color coding (the %s light up green or red) */
+.tbd-panel .tbd-pass .tbd-v, .tbd-panel .tbd-pass .tbd-mark { color: #4ade80; }
+.tbd-panel .tbd-fail .tbd-v, .tbd-panel .tbd-fail .tbd-mark { color: #f87171; }
+.tbd-panel .tbd-na .tbd-v, .tbd-panel .tbd-na .tbd-mark { color: #94a3b8; }
+
+.tbd-panel .tbd-action {
+  background: rgba(255, 255, 255, 0.05); border-radius: 8px; padding: 8px 10px;
+  font-size: 12px; color: #e2e8f0; margin-bottom: 8px;
+}
+.tbd-panel .tbd-action b { color: var(--tbd-color, #fff); }
+.tbd-panel .tbd-foot { font-size: 9px; color: #64748b; text-align: center; }

@@ -1,0 +1,16 @@
+# Secrets / local config
+.env
+.env.*
+!.env.example
+
+# OS
+.DS_Store
+
+# Logs
+*.log
+
+# Node
+node_modules/
+
+# Playwright MCP scratch output from dev recon
+.playwright-mcp/

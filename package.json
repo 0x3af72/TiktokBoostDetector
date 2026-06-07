@@ -1,0 +1,11 @@
+{
+  "name": "tiktok-boost-detector",
+  "version": "1.0.0",
+  "description": "Chrome extension that marks TikTok posts Organic / Mixed / Paid from engagement shape.",
+  "private": true,
+  "scripts": {
+    "test": "node test/classify.test.js",
+    "icons": "node scripts/gen-icons.js"
+  },
+  "license": "MIT"
+}

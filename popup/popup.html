@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <link rel="stylesheet" href="popup.css" />
+</head>
+<body>
+  <header>
+    <div class="logo">TikTok <b>Boost Detector</b></div>
+    <label class="switch" title="Enable / disable badges and widget">
+      <input type="checkbox" id="enabled" checked />
+      <span class="slider"></span>
+    </label>
+  </header>
+
+  <p class="lead">A binary classifier — <b>Organic</b> vs <b>Boosted</b> with a
+    confidence % — from pure engagement math. No identity checks.</p>
+
+  <label class="row" title="Treat a TikTok-disclosed ad (isAd) as an automatic Boosted 99%. Turn off to judge those posts on engagement math only.">
+    <span>Trust <b>isAd</b> / promo label as override</span>
+    <span class="switch"><input type="checkbox" id="promoOverride" checked /><span class="slider"></span></span>
+  </label>
+
+  <div class="legend">
+    <div><span class="dot" style="background:#16a34a"></span> <b>ORG</b> Organic — engagement looks chosen; usable as format evidence</div>
+    <div><span class="dot" style="background:#dc2626"></span> <b>BST</b> Boosted — distribution you can't trust as format evidence</div>
+    <div><span class="dot" style="background:#64748b"></span> <b>?</b> No data / undetermined (50–60%)</div>
+  </div>
+
+  <div class="how">
+    <div class="how-t">How it scores</div>
+    <ol>
+      <li><b>Override:</b> "Promotional content" / isAd → Boosted 99%.</li>
+      <li>Five signals score −2 (organic) … +2 (boosted): likes/views ×3, <b>saves/views ×3</b>, <b>saves/likes ×2</b>, likes/comments ×1, comments-alive ×1. Saves carry half the weight (hardest to fake).</li>
+      <li>S = weighted sum × a view-scale factor (low views shrink confidence). S&gt;0 → Boosted, S&lt;0 → Organic.</li>
+      <li>confidence = 50 + 4·|S| (cap 95%, or 80% with views hidden).</li>
+    </ol>
+    <div class="note">50–60% = a guess · 60–75% = lean · 75%+ = act on it. Works on
+      videos and slideshows. Click any badge or the widget header for the full
+      color-coded signal breakdown.</div>
+  </div>
+
+  <footer><span id="count">0</span> posts scored on this page</footer>
+  <script src="popup.js"></script>
+</body>
+</html>
